@@ -1,0 +1,134 @@
+<link rel="import" href="./bower_components/polymer/polymer.html">
+<script src="./node_modules/mixitup/dist/mixitup.js"></script>
+
+<dom-module id="mixitup-element">
+  <template>
+    <style>
+
+      :host{
+        display: flex;
+      }
+
+       .filter-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: stretch;
+      }
+
+      .mixer-item{
+        display: inline-block;
+      }
+
+      .card{
+        background: green;
+        width:200px;
+        height: 200px;
+        margin : 20px;
+        color:aliceblue;
+        display: block;
+      }
+
+    </style>
+
+
+<div class="mix-control">
+    <button type="button" data-filter="all" on-click="filterMixGrid">All</button>
+    <button type="button" data-filter=".dog" on-click="filterMixGrid">Dog</button>
+    <button type="button" data-filter=".cat" on-click="filterMixGrid">Cat</button>
+</div>
+
+<div class="filter-container" id="filterContainer">
+      <div class="mixer-item dog">
+        <div class="card">Card1</div>
+      </div>
+      <div class="mixer-item dog">
+        <div class="card">Card2</div>
+      </div>
+      <div class="mixer-item cat">
+        <div class="card">Card3</div>
+      </div>
+      <div class="mixer-item cat">
+        <div class="card">Card4</div>
+      </div>
+      <div class="mixer-item dog">
+        <div class="card">Card5</div>
+      </div>
+      <div class="mixer-item dog">
+        <div class="card">Card6</div>
+      </div>
+      <div class="mixer-item dog">
+        <div class="card">Card7</div>
+      </div>
+      <div class="mixer-item cat">
+        <div class="card">Card8</div>
+      </div>
+      <div class="mixer-item cat">
+        <div class="card">Card9</div>
+      </div>
+      <div class="mixer-item cat">
+        <div class="card">Card10</div>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    /**
+     * `mixitup-element`
+     * webcomponent wrapper for filterizer jquery plugin
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class MixitupElement extends Polymer.Element {
+      static get is() { return 'mixitup-element'; }
+      static get properties() {
+        return {
+          mixer: {
+            type: Object
+          }
+        };
+      }
+
+      ready(){
+        super.ready();
+
+        
+      this.mixer = mixitup(this.shadowRoot.querySelector('.filter-container'),{
+        selectors: {
+            target: '.mixer-item'
+        },
+        animation: {
+            duration: 500
+        }
+      });
+
+      this.mixer.filter('.dog');
+}
+
+      filterMixGrid(e){
+        this.filter(e.target.dataset.filter);
+      }
+
+      connectedCallback(){
+        super.connectedCallback();
+      }
+
+      filter(filterSelector){
+        this.mixer.filter(filterSelector);
+      }
+
+      sort(sortDataAttr,sortOrder = 'asc'){
+        this.mixer.sort(`${sortDataAttr}:${sortOrder}`);
+      }
+
+      // _attachDom(dom){
+      //   this.appendChild(dom);
+      // }
+    }
+
+    window.customElements.define(MixitupElement.is, MixitupElement);
+  </script>
+</dom-module>

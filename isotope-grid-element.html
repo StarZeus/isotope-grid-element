@@ -1,0 +1,235 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer/lib/utils/render-status.html">
+<script src="../isotope-layout/dist/isotope.pkgd.min.js"></script>
+
+<!--
+`isotope-grid-element` is an element for displaying a filterable gallery using
+isotope.js to animage filter transitions. This element can receive in its content
+any tipe of tags or elements to filter (not needed images at all). 
+
+
+@element isotope-grid-element
+@demo demo/index.html
+-->
+
+<dom-module id="isotope-grid-element">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <!-- <isotope-element></isotope-element> -->
+    <slot id="tags" name="tags"></slot>
+    <div id="grid"/>
+    <slot></slot>
+    
+  </template>
+
+  <script>
+    class IsotopeGridElement extends Polymer.Element {
+      static get is() { return 'isotope-grid-element'; }
+      static get properties() {
+        return {
+          /**
+           * The list of filter categories 
+           */
+           filters: {
+            type: Array
+          },
+          /**
+           * The search string 
+           */
+           search: {
+            type: String
+          },
+
+          /**
+           * The class of filterable items 
+           */
+          itemClass: {
+            type: String,
+            value: 'card'
+          },
+          /**
+           * The filter used in first instance, by default none
+           */
+          defaultFilter: {
+            type: String,
+            value: '*'
+          },
+          /**
+           * The attribute where tags inform filter
+           */
+          tagFilterAttribute: {
+            type: String,
+            value: 'data-filter'
+          },
+          /**
+           * The attribute where search inform filter
+           */
+           tagSearchAttribute: {
+            type: String,
+            value: 'data-search'
+          },
+          _currentFilter:String,
+          _currentSearch:String,
+        }
+      }
+
+      static get observers(){
+        return [
+          '_filterChanged(filters,filters.*)',
+          '_searchChanged(search)'
+        ]
+      }
+
+      connectedCallback() {
+        super.connectedCallback()
+        this.grid = new Isotope(this.$.grid);
+        this.grid.addItems(this.getElementsByClassName(this.itemClass));
+        this.grid.arrange({
+          stagger:50
+        });
+        
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          this.filterItems(this.defaultFilter);
+        });
+
+        this._bindEvents();
+      }
+
+      _bindEvents(){
+        let filterControls = this.querySelectorAll('[data-filter]');
+        filterControls.forEach( control => control.addEventListener('click',this._onClickFilterTag.bind(this)));
+
+        let searchControls = this.querySelectorAll('[ref-search]');
+        searchControls.forEach( control => control.addEventListener('keyup',this._onInputSearchTag.bind(this)));
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback()
+        this.removeEventListener('click', this._onClickTag)
+      }
+
+      /**
+       * @public
+       * @param filter {String/Array/JSON string array} Filter to pass to the filter function,
+       * if empty clear filters
+       * The filter function, by default class filter 
+       */
+      filterItems(filter) {
+        if (filter){
+          this.grid.arrange({
+             filter: this._filterThenSearch(filter, this._currentSearch)
+          });
+          this._currentFilter = filter;
+        } else {
+          this.grid.arrange({
+            filter: '*'
+          });
+          this._currentFilter = null;
+        }
+      }
+
+       /**
+       * @public
+       * @param search {String}  to pass to the search function,
+       * search item within the filtered items, if any 
+       */
+       searchItems(search) {
+        if(search && search.trim().length > 0){
+          this._currentSearch = search;
+        }else{
+          this._currentSearch = null;
+        }
+
+        this.grid.arrange({
+             filter: this._filterThenSearch(this._currentFilter,search)
+        });
+      }
+
+      _filterThenSearch(filters,searchStr){
+          return (itemElem) => {
+            let showItemElem = false;
+            let filterAvailable = filters && filters.length > 0;
+            let searchAvailable = searchStr && searchStr.trim().length > 0
+
+            if(itemElem.classList.contains('card')){
+
+              if(filterAvailable){
+                if(filters == '*'){
+                  showItemElem = true;
+                }else if(itemElem.dataset.categories){
+                  let itemCategories = JSON.parse(itemElem.dataset.categories);
+                  if(filters && Array.isArray(filters)){ //multiple category filter in an Array
+                     for(ic of itemCategories){
+                       showItemElem = filters.some(fil => fil === ic);
+                       if(showItemElem) break;
+                     }
+                  }else{ // assume filters is a String
+                    showItemElem = itemCategories.includes(filters);
+                  }
+                  
+                }else{
+                  if(filters && Array.isArray(filters)){ //multiple category filter in an Array
+                     for(let fil of filters){
+                       showItemElem = itemElem.classList.contains(fil);
+                       if(showItemElem) break;
+                     }
+                  }else{ // assume filters is a String
+                    showItemElem = itemElem.classList.contains(filters);
+                  }
+                }
+              }else{
+                showItemElem = true;
+              }
+
+              if(filterAvailable && showItemElem === false){
+                return showItemElem;
+              }
+            
+              if(searchAvailable){
+                if(itemElem.dataset.searchTags){
+                  let sTags = JSON.parse(itemElem.dataset.searchTags);
+                  showItemElem = sTags.includes(searchStr);
+                }else if(itemElem.dataset.searchText){
+                  showItemElem = itemElem.dataset.searchText.toLowerCase().includes(searchStr.toLowerCase());
+                }else{
+                  showItemElem = false;
+                }
+              }
+            } 
+
+            return showItemElem;
+          }
+      }
+
+      _onClickFilterTag (evt) {
+        var filter = evt.target && evt.target.getAttribute(this.tagFilterAttribute)
+        if (filter) {
+          if(filter.startsWith('[') && filter.endsWith(']')){//filter is an array string
+            this.filterItems(JSON.parse(filter));
+          }else{
+            this.filterItems(filter);
+          }
+        }
+      }
+
+      _onInputSearchTag (evt) {
+        var search = evt.target && evt.target.value;
+        this.searchItems(search);
+      }
+
+      _filterChanged(filters){
+        this._filterThenSearch(filters,this._currentSearch);
+      }
+      _searchChanged(search){
+        this._filterThenSearch(this._currentFilter,search);
+      }
+
+      }
+
+    window.customElements.define(IsotopeGridElement.is, IsotopeGridElement)
+  </script>
+</dom-module>

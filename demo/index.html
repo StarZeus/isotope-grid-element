@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>isotope-grid-element demo</title>
+
+    <link rel="import" href="../isotope-grid-element.html">
+
+    <style>
+
+      .card{
+        width:200px;
+        height: 200px;
+        margin : 20px;
+        color:aliceblue;
+      }
+
+      .red{
+        background: red;
+      }
+
+      .green{
+        background: green;
+      }
+
+      .blue{
+        background: blue;
+      }
+    </style>
+  </head>
+  <body>
+
+      <isotope-grid-element default-filter="*">
+          <div slot="tags" class="tags">
+              <button data-filter="all">All</button>
+              <button data-filter="odd">Odd</button>
+              <button data-filter="even">Even</button>
+              <input type='search' ref-search/>
+            </div>
+
+          <div class="card green" data-search-tags='["odd"]' data-categories = '["all", "odd"]'>One</div>
+          <div class="card green" data-search-tags='["even"]'  data-categories = '["all", "even"]'>Two</div>
+          <div class="card green" data-search-tags='["odd"]'  data-categories = '["all", "odd"]'>Three</div>
+          <div class="card green" data-search-tags='["even"]'  data-categories = '["all", "even"]'>Four</div>
+          <div class="card green" data-search-tags='["odd"]'  data-categories = '["all", "odd"]'>Five</div>
+          <div class="card green" data-search-tags='["even"]'  data-categories = '["all", "even"]'>Six</div>
+          <div class="card green" data-search-tags='["odd"]'  data-categories = '["all", "odd"]'>Seven</div>
+          <div class="card green" data-search-tags='["even"]'  data-categories = '["all", "even"]'>Eight</div>
+          <div class="card green" data-search-tags='["odd"]'  data-categories = '["all", "odd"]'>Nine</div>
+          <div class="card green" data-search-tags='["even"]'  data-categories = '["all", "even"]'>Ten</div>
+      </isotope-grid-element>
+
+
+      <isotope-grid-element default-filter="all">
+        <div slot="tags" class="tags">
+            <button data-filter="all">All</button>
+            <button data-filter="red">Red</button>
+            <button data-filter="green">Green</button>
+            <button data-filter="blue">Blue</button>
+            <button data-filter='["red","blue"]'>Red & Blue</button>
+            Search Animal: <input type='search' ref-search/>
+          </div>
+
+          <div class="card all red" data-search-text="Lion">Lion</div>
+          <div class="card all green" data-search-text="Tiger">Tiger</div>
+          <div class="card all red" data-search-text="Dog">Dog</div>
+          <div class="card all blue" data-search-text="Cat">Cat</div>
+          <div class="card all red" data-search-text="Elephant">Elephant</div>
+          <div class="card all green" data-search-text="Bull">Bull</div>
+          <div class="card all blue" data-search-text="Camel">Camel</div>
+          <div class="card all green" data-search-text="Otter">Otter</div>
+          <div class="card all red" data-search-text="Shark">Shark</div>
+          <div class="card all blue" data-search-text="Rat">Rat</div>
+    </isotope-grid-element>
+
+  </body>
+</html>
