@@ -1,4 +1,4 @@
-# \<filterizer-element\>
+# \<isotope-grid-element\>
 
 webcomponent wrapper for filterizer jquery plugin
 
