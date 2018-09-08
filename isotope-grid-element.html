@@ -5,7 +5,7 @@
 <!--
 `isotope-grid-element` is an element for displaying a filterable gallery using
 isotope.js to animage filter transitions. This element can receive in its content
-any tipe of tags or elements to filter (not needed images at all). 
+any tipe of tags or elements to filter (not needed images at all).
 
 
 @element isotope-grid-element
@@ -17,13 +17,14 @@ any tipe of tags or elements to filter (not needed images at all).
     <style>
       :host {
         display: block;
+        position: relative;
       }
     </style>
     <!-- <isotope-element></isotope-element> -->
     <slot id="tags" name="tags"></slot>
     <div id="grid"/>
     <slot></slot>
-    
+
   </template>
 
   <script>
@@ -32,20 +33,20 @@ any tipe of tags or elements to filter (not needed images at all).
       static get properties() {
         return {
           /**
-           * The list of filter categories 
+           * The list of filter categories
            */
            filters: {
             type: Array
           },
           /**
-           * The search string 
+           * The search string
            */
            search: {
             type: String
           },
 
           /**
-           * The class of filterable items 
+           * The class of filterable items
            */
           itemClass: {
             type: String,
@@ -56,7 +57,7 @@ any tipe of tags or elements to filter (not needed images at all).
            */
           defaultFilter: {
             type: String,
-            value: '*'
+            value: '**'
           },
           /**
            * The attribute where tags inform filter
@@ -86,14 +87,29 @@ any tipe of tags or elements to filter (not needed images at all).
 
       connectedCallback() {
         super.connectedCallback()
-        this.grid = new Isotope(this.$.grid);
+
+        let options = {
+          itemSelector: '.'+this.itemClass,
+          layoutMode: 'fitRows',
+          filter:'*',
+          // hiddenStyle: {
+          //   opacity: 0,
+          //   transform: 'scale(0.001)'
+          // },
+          // visibleStyle: {
+          //   opacity: 1,
+          //   transform: 'scale(1)'
+          // }
+        };
+
+        this.grid = new Isotope(this.$.grid, options);
         this.grid.addItems(this.getElementsByClassName(this.itemClass));
         this.grid.arrange({
-          stagger:50
+          stagger:20
         });
-        
+
         Polymer.RenderStatus.afterNextRender(this, () => {
-          this.filterItems(this.defaultFilter);
+        //  this.filterItems(this.defaultFilter);
         });
 
         this._bindEvents();
@@ -116,7 +132,7 @@ any tipe of tags or elements to filter (not needed images at all).
        * @public
        * @param filter {String/Array/JSON string array} Filter to pass to the filter function,
        * if empty clear filters
-       * The filter function, by default class filter 
+       * The filter function, by default class filter
        */
       filterItems(filter) {
         if (filter){
@@ -135,7 +151,7 @@ any tipe of tags or elements to filter (not needed images at all).
        /**
        * @public
        * @param search {String}  to pass to the search function,
-       * search item within the filtered items, if any 
+       * search item within the filtered items, if any
        */
        searchItems(search) {
         if(search && search.trim().length > 0){
@@ -155,6 +171,8 @@ any tipe of tags or elements to filter (not needed images at all).
             let filterAvailable = filters && filters.length > 0;
             let searchAvailable = searchStr && searchStr.trim().length > 0
 
+            console.log("filtering:",filters);
+
             if(itemElem.classList.contains('card')){
 
               if(filterAvailable){
@@ -170,7 +188,7 @@ any tipe of tags or elements to filter (not needed images at all).
                   }else{ // assume filters is a String
                     showItemElem = itemCategories.includes(filters);
                   }
-                  
+
                 }else{
                   if(filters && Array.isArray(filters)){ //multiple category filter in an Array
                      for(let fil of filters){
@@ -188,7 +206,7 @@ any tipe of tags or elements to filter (not needed images at all).
               if(filterAvailable && showItemElem === false){
                 return showItemElem;
               }
-            
+
               if(searchAvailable){
                 if(itemElem.dataset.searchTags){
                   let sTags = JSON.parse(itemElem.dataset.searchTags);
@@ -199,7 +217,7 @@ any tipe of tags or elements to filter (not needed images at all).
                   showItemElem = false;
                 }
               }
-            } 
+            }
 
             return showItemElem;
           }
