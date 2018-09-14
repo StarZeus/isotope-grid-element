@@ -1,5 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../polymer/lib/utils/render-status.html">
+<link rel="import" href="../polymer/lib/utils/flattened-nodes-observer.html">
 <script src="../isotope-layout/dist/isotope.pkgd.min.js"></script>
 
 <!--
@@ -23,7 +24,7 @@ any tipe of tags or elements to filter (not needed images at all).
     <!-- <isotope-element></isotope-element> -->
     <slot id="tags" name="tags"></slot>
     <div id="grid"/>
-    <slot></slot>
+    <slot id="gridSlot"></slot>
 
   </template>
 
@@ -86,12 +87,15 @@ any tipe of tags or elements to filter (not needed images at all).
       }
 
       connectedCallback() {
-        super.connectedCallback()
+        super.connectedCallback();
 
         let options = {
           itemSelector: '.'+this.itemClass,
           layoutMode: 'fitRows',
+          // layoutMode: 'fitColumns',
+          // layoutMode: 'packery',
           filter:'*',
+          // stagger:20,
           // hiddenStyle: {
           //   opacity: 0,
           //   transform: 'scale(0.001)'
@@ -103,13 +107,40 @@ any tipe of tags or elements to filter (not needed images at all).
         };
 
         this.grid = new Isotope(this.$.grid, options);
-        this.grid.addItems(this.getElementsByClassName(this.itemClass));
-        this.grid.arrange({
-          stagger:20
-        });
+        // this.grid.addItems(this.getElementsByClassName(this.itemClass));
+        // this.grid.arrange({
+        //   stagger:20
+        // });
 
         Polymer.RenderStatus.afterNextRender(this, () => {
-        //  this.filterItems(this.defaultFilter);
+
+        });
+
+        this._observer = new Polymer.FlattenedNodesObserver(this.$.gridSlot, (info) => {
+          let addedItems = info.addedNodes.filter( (node) => {
+                                  return (node.nodeType === Node.ELEMENT_NODE)
+                                  //return node.classList && node.classList.contains(this.itemClass);
+                               });
+
+          let addedGridItems = addedItems.filter( (node) => {
+            return node.classList && node.classList.contains(this.itemClass);
+          });
+
+          if(!addedGridItems || addedGridItems.length === 0){
+            setTimeout( () => {
+              addedItems.forEach( node => {
+                console.log("Sub Nodes:", node,this.itemClass, node.querySelectorAll('.'+this.itemClass));
+                addedGridItems = node.querySelectorAll('.'+this.itemClass);
+                this.grid.addItems(addedGridItems);
+              } );
+            },10000);
+
+          }
+
+          console.log("Added Grid Items:",addedGridItems);
+
+          this.grid.addItems(addedGridItems);
+          this.grid.arrange();
         });
 
         this._bindEvents();
@@ -169,11 +200,8 @@ any tipe of tags or elements to filter (not needed images at all).
           return (itemElem) => {
             let showItemElem = false;
             let filterAvailable = filters && filters.length > 0;
-            let searchAvailable = searchStr && searchStr.trim().length > 0
-
-            console.log("filtering:",filters);
-
-            if(itemElem.classList.contains('card')){
+            let searchAvailable = searchStr && searchStr.trim().length > 0;
+            if(itemElem.classList.contains(this.itemClass)){
 
               if(filterAvailable){
                 if(filters == '*'){
@@ -181,20 +209,20 @@ any tipe of tags or elements to filter (not needed images at all).
                 }else if(itemElem.dataset.categories){
                   let itemCategories = JSON.parse(itemElem.dataset.categories);
                   if(filters && Array.isArray(filters)){ //multiple category filter in an Array
-                     for(ic of itemCategories){
-                       showItemElem = filters.some(fil => fil === ic);
-                       if(showItemElem) break;
-                     }
+                    for(let ic of itemCategories){
+                      showItemElem = filters.some(fil => fil === ic);
+                      if(showItemElem) break;
+                    }
                   }else{ // assume filters is a String
                     showItemElem = itemCategories.includes(filters);
                   }
 
                 }else{
                   if(filters && Array.isArray(filters)){ //multiple category filter in an Array
-                     for(let fil of filters){
-                       showItemElem = itemElem.classList.contains(fil);
-                       if(showItemElem) break;
-                     }
+                    for(let fil of filters){
+                      showItemElem = itemElem.classList.contains(fil);
+                      if(showItemElem) break;
+                    }
                   }else{ // assume filters is a String
                     showItemElem = itemElem.classList.contains(filters);
                   }
@@ -240,10 +268,10 @@ any tipe of tags or elements to filter (not needed images at all).
       }
 
       _filterChanged(filters){
-        this._filterThenSearch(filters,this._currentSearch);
+        this.filterItems(filters);
       }
       _searchChanged(search){
-        this._filterThenSearch(this._currentFilter,search);
+        this.searchItems(search);
       }
 
       }

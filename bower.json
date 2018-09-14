@@ -1,7 +1,7 @@
 {
   "name": "isotope-grid-element",
   "description": "webcomponent wrapper for isotope grid layout",
-  "version":"1.0.1",
+  "version":"1.0.2",
   "main": "isotope-grid-element.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
